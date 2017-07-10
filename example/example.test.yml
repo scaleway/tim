@@ -1,0 +1,14 @@
+- service:
+    - haveged
+- service: haveged
+- service:
+    name: haveged
+    running: true
+    enabled: true
+- http:
+    port: 80
+    requests:
+      - status: 403
+      - method: GET
+        url: /test
+        status: 404
