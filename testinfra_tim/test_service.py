@@ -5,7 +5,7 @@ license that can be found in the LICENSE file.
 '''
 
 from functools import reduce
-from .tooling import yaml_params, listize
+from .tooling import yaml_params, listize, map_sum
 
 
 def _get_services(params, running=True, enabled=True):
@@ -21,9 +21,8 @@ def _get_services(params, running=True, enabled=True):
     elif isinstance(params, dict):
         running = params.get('running', running)
         enabled = params.get('enabled', enabled)
-        add = lambda a, b: a + b
         get_name_attr = lambda name: listize(params.get(name, []))
-        for subparam in reduce(add, map(get_name_attr, ('name', 'names',))):
+        for subparam in map_sum(get_name_attr, ('name', 'names',)):
             yield from _get_services(subparam, running, enabled)
     else:
         raise RuntimeError('service test takes a dict, list'

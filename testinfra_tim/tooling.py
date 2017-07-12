@@ -5,7 +5,7 @@ license that can be found in the LICENSE file.
 '''
 
 import yaml
-
+from functools import reduce
 
 _XGET_ANCHOR = object()
 def custom_xget(subject):
@@ -70,3 +70,8 @@ def yaml_params(func):
     """
     func.yaml_params = True
     return func
+
+
+def map_sum(f, vals):
+    """ Takes a function and a list and computes f(l[0]) + f(l[1]) + ... """
+    return reduce(lambda a, b: a + b, map(f, vals))
