@@ -75,3 +75,21 @@ def yaml_params(func):
 def map_sum(f, vals):
     """ Takes a function and a list and computes f(l[0]) + f(l[1]) + ... """
     return reduce(lambda a, b: a + b, map(f, vals))
+
+
+class CommandBuilder():
+    """
+    Helper to build testinfra commands.
+
+    """
+    def __init__(self, *args, sudo=None):
+        self.args = list(args)
+        if sudo:
+            self.args = ['sudo', '-u', sudo, '--'] + self.args
+
+    def append(self, arg):
+        self.args += listize(arg)
+        return self
+
+    def build(self):
+        return [' '.join('%s' for _ in range(len(self.args)))] + self.args
