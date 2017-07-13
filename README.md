@@ -11,16 +11,48 @@ pip3 install git+git://github.com/scaleway/tim.git
 
 # Usage
 
-TIM currently supports two options:
- - `--yamltest` registers a yaml test file
- - `--simpletests` registers a simple tests folder
-
-You can run yaml tests on a machine using the yamltest wrapper:
 ```sh
-yamltest --yamltest example/example.test.yml \
-	 --simpletests example/simple \
-	 --hosts root@testedhost \
-	 example/pytest
+yamltest --timdir tests/ root@banana root@duck
+```
+
+```
+$ yamltest -h
+usage: yamltest [-h] [--tim_verbose] [--timdir TIMDIR] [--pytestdir PYTESTDIR]
+                [--pytestarg PYTESTARG]
+                hosts [hosts ...]
+
+Run TIM on test directories
+
+positional arguments:
+  hosts                 hosts to run tests on
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --tim_verbose         print pytest's args
+  --timdir TIMDIR       adds a new TIM test dir
+  --pytestdir PYTESTDIR
+                        add dir to pytest search path
+  --pytestarg PYTESTARG
+                        args to be passed to pytest
+```
+
+`--timdir tests` registers all yaml tests matching `tests/*.test.yml`, all pytest tests in `tests/pytest/`, and all executable programs in `tests/simple/`:
+```
+├── scaleway-wordpress.test.yml
+├── pytest
+│   └── test_example.py
+└── simple
+    └── test.sh
+```
+
+
+When `--raw` is passed as the first argument, if forwards the next arguments directly to pytest. It also adds the path to the tim tests at the end of the argument list.
+
+```sh
+yamltest --raw --yamltest tests/example.test.yml \
+	 --simpletests tests/simple/ \
+	 --hosts root@banana,root@duck \
+	 tests/pytest/
 ```
 
 # Yaml test files
@@ -68,10 +100,9 @@ REMOTE_USER=root
 
 `REMOTE_METHOD` holds the name of the testinfra module being used to connect to the host.
 
-# Additional testinfra / pytest tests
+# Writting pytest tests
 
-You can also add one or more paths to directories to load tests from as the lasts arguments to `yamltest`. These arguments are directly passed to pytest.
-Please refer to the documentation of [testinfra](https://testinfra.readthedocs.io/) and [pytest](https://docs.pytest.org/) for further information.
+These just are regular testinfra tests. Please refer to the documentation of [testinfra](https://testinfra.readthedocs.io/) and [pytest](https://docs.pytest.org/) for further information.
 
 # Licensing
 

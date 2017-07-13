@@ -7,6 +7,8 @@ license that can be found in the LICENSE file.
 '''
 
 import sys
+from argparse import ArgumentParser
+from pathlib import Path
 from collections import defaultdict
 
 import pytest
@@ -15,16 +17,16 @@ from testinfra_tim.tooling import listdict, yaml_get_dict
 
 
 def pytest_addoption(parser):
-    parser.addoption("--yamltest", action="append", default=[],
-                     help="list of yamltests to pass to test functions")
-    parser.addoption("--simpletests", action="append", default=[],
+    parser.addoption("--yamltestfile", action="append", default=[],
+                     help="list of yaml tests to pass to test functions")
+    parser.addoption("--simpletestdir", action="append", default=[],
                      help=("list of folders containing simple tests to run"
                            " and to check the return code of"))
 
 
 def pytest_configure(config):
     config.paramsmap = defaultdict(list)
-    for yamltest in config.option.yamltest:
+    for yamltest in config.option.yamltestfile:
         for featurename, case in listdict(yaml_get_dict(yamltest)):
             config.paramsmap[featurename].append(case)
 
@@ -34,9 +36,54 @@ def pytest_generate_tests(metafunc):
         test_name = metafunc.function.__name__[len('test_'):]
         metafunc.parametrize("params", metafunc.config.paramsmap[test_name])
     elif 'simple_tests' in metafunc.fixturenames:
-        metafunc.parametrize("simple_tests", metafunc.config.option.simpletests)
+        metafunc.parametrize("simple_tests", metafunc.config.option.simpletestdir)
+
+
+def _tim_parser():
+    parser = ArgumentParser(description='Run TIM on test directories')
+    paa = parser.add_argument
+    paa('--tim_verbose', action='store_true', help="print pytest's args")
+    paa('--timdir', action='append', default=[], help='adds a new TIM test dir')
+    paa('--pytestdir', action='append', default=[], help='add dir to pytest search path')
+    paa('--pytestarg', action='append', default=[], help='arg to be passed to pytest')
+    paa('hosts', nargs='+', default=[], help='hosts to run tests on')
+    return parser
+
+def _translate_options(args):
+    for timdir in (Path(tdir) for tdir in args.timdir):
+        for yamltest in timdir.glob('*.test.yml'):
+            yield from ('--yamltestfile', str(yamltest))
+        pytest_dir, simple_dir = map(timdir.joinpath, ('pytest', 'simple'))
+        if pytest_dir.is_dir():
+            yield str(pytest_dir)
+        if simple_dir.is_dir():
+            yield from ('--simpletestdir', str(simple_dir))
+
+    yield from ('--hosts', ','.join(host.strip() for host in args.hosts))
+    yield from args.pytestdir
+    yield from args.pytestarg
+
+
+
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
+    raw_mode = sys.argv[0] == '--raw'
+    if raw_mode:
+        pytest_args = sys.argv[1:]
+    else:
+        tim_args = _tim_parser().parse_args(args=args)
+        pytest_args = list(_translate_options(tim_args))
+
+    # add the path to the tim tests to the pytest search path
+    pytest_args.extend(testinfra_tim.__path__)
+
+    if raw_mode or tim_args.tim_verbose:
+        print(f'>> running pytest.main with args: {pytest_args}')
+
+    pytest.main(args=pytest_args, plugins=[sys.modules[__name__]])
 
 
 if __name__ == '__main__':
-    pytest.main(args=(sys.argv[1:] + testinfra_tim.__path__),
-                plugins=[sys.modules[__name__]])
+    main()
