@@ -4,9 +4,8 @@ Use of this source code is governed by a MIT-style
 license that can be found in the LICENSE file.
 '''
 
-import re
 from http.client import HTTPConnection
-from .tooling import get_host_addr, yaml_params
+from .tooling import get_host_addr, yaml_params, re_match
 
 
 @yaml_params
@@ -24,8 +23,8 @@ def test_http(host, params):
     and expect answer code 200 as well as a response
     encoded using utf-8 and matching regex '.*'.
     You can override this behavior using parameters
-    'method', 'url', 'status', 'encoding', 'check_encoding'
-    and 'response_regex'.
+    'method', 'url', 'status', 'encoding', 'check_encoding',
+    'regex' and 'regex_policy'.
 
     Example:
     >> http:
@@ -51,9 +50,9 @@ def test_http(host, params):
         assert response.status == status
 
         check_encoding = test.get('check_encoding', True)
-        response_regex = test.get('response_regex')
+        regex = test.get('regex')
 
-        if not check_encoding and response_regex:
+        if not check_encoding and regex:
             raise RuntimeError('Cannot check if the answer matches '
                                'a regex without decoding the content. '
                                'Please enable the encoding check in test:'
@@ -62,5 +61,5 @@ def test_http(host, params):
         if check_encoding:
             decoded_content = content.decode(encoding=test.get('encoding', 'utf-8'))
 
-        if response_regex:
-            assert re.match(response_regex, decoded_content)
+        if regex:
+            assert re_match(regex, decoded_content, test.get('regex_policy', 'any'))

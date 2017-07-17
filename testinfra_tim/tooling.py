@@ -4,8 +4,11 @@ Use of this source code is governed by a MIT-style
 license that can be found in the LICENSE file.
 '''
 
-import yaml
+import re
+from enum import Enum
 from functools import reduce
+import yaml
+
 
 _XGET_ANCHOR = object()
 def custom_xget(subject):
@@ -93,3 +96,46 @@ class CommandBuilder():
 
     def build(self):
         return [' '.join('%s' for _ in range(len(self.args)))] + self.args
+
+
+class _NonDescWrapper():
+    """
+    The python enum module ignores descriptors.
+    This wrapper isn't a descriptor, and enable a
+    callable descriptor object to be used as an enum value.
+    """
+    def __init__(self, function):
+        self.function = function
+
+    def __call__(self, *args, **kwargs):
+        return self.function(*args, **kwargs)
+
+
+class MatchPolicy(Enum):
+    @classmethod
+    def from_string(cls, s):
+        return cls[s.upper()]
+
+    @classmethod
+    def cast(cls, e):
+        if isinstance(e, cls):
+            return e
+        elif isinstance(e, str):
+            return cls.from_string(e)
+        elif isinstance(e, type(None)):
+            return cls.from_string('NONE')
+        raise RuntimeError(f'Cannot cast type `{type(e)}` to {cls.__name__}')
+
+
+    ANY = any
+    ALL = all
+    NONE = _NonDescWrapper(lambda it: not any(it))
+
+
+def re_match(regex, lines, regex_policy=MatchPolicy.ANY):
+    if not callable(regex_policy):
+        regex_policy = MatchPolicy.cast(regex_policy)
+    if isinstance(lines, str):
+        lines = lines.splitlines()
+    comp_regex = re.compile(regex)
+    return regex_policy.value(re.match(comp_regex, line) for line in lines)

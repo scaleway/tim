@@ -4,8 +4,7 @@ Use of this source code is governed by a MIT-style
 license that can be found in the LICENSE file.
 '''
 
-import re
-from .tooling import yaml_params, listize, CommandBuilder
+from .tooling import yaml_params, listize, CommandBuilder, re_match
 
 
 def mysql_run(host, params):
@@ -14,8 +13,9 @@ def mysql_run(host, params):
     db = params.get('db', None)
     query = params.get('query', '')
     mysql_bin = params.get('mysql_bin', 'mysql')
-    expect_regex = params.get('expect_regex', None)
+    regex = params.get('regex', None)
     skip_column_names = params.get('skip_column_names', True)
+    regex_policy = params.get('regex_policy', 'all')
 
     cmd = CommandBuilder(mysql_bin, sudo=user)
     cmd.append(['-u', db_user])
@@ -29,8 +29,8 @@ def mysql_run(host, params):
 
     res = host.check_output(*cmd.build())
 
-    if isinstance(expect_regex, str):
-        assert re.match(expect_regex, res)
+    if isinstance(regex, str):
+        assert re_match(regex, res, regex_policy)
 
 
 @yaml_params
@@ -45,7 +45,8 @@ def test_mysql(host, params):
     >>       db_user: test_db_user
     >>       user: www-data
     >>       query: SELECT 42, 3
-    >>       expect_regex: '^42\\t3$'
+    >>       regex: '^42\\t3$'
+    >>       regex_policy: 'all'
     """
     for par in listize(params):
         mysql_run(host, par)
