@@ -4,18 +4,18 @@ Use of this source code is governed by a MIT-style
 license that can be found in the LICENSE file.
 '''
 
-from .tooling import yaml_params, listize, CommandBuilder, re_match
+from .tooling import yaml_params, listize, CommandBuilder, re_match, params_warn
 
 
 def mysql_run(host, params):
-    user = params.get('user', None)
-    db_user = params.get('db_user', 'root')
-    db = params.get('db', None)
-    query = params.get('query', '')
-    mysql_bin = params.get('mysql_bin', 'mysql')
-    regex = params.get('regex', None)
-    skip_column_names = params.get('skip_column_names', True)
-    regex_policy = params.get('regex_policy', 'all')
+    user = params.pop('user', None)
+    db_user = params.pop('db_user', 'root')
+    db = params.pop('db', None)
+    query = params.pop('query', '')
+    mysql_bin = params.pop('mysql_bin', 'mysql')
+    regex = params.pop('regex', None)
+    skip_column_names = params.pop('skip_column_names', True)
+    regex_policy = params.pop('regex_policy', 'all')
 
     cmd = CommandBuilder(mysql_bin, sudo=user)
     cmd.append(['-u', db_user])
@@ -31,6 +31,8 @@ def mysql_run(host, params):
 
     if isinstance(regex, str):
         assert re_match(regex, res, regex_policy)
+
+    params_warn(params)
 
 
 @yaml_params

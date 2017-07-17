@@ -5,7 +5,7 @@ license that can be found in the LICENSE file.
 '''
 
 from http.client import HTTPConnection
-from .tooling import get_host_addr, yaml_params, re_match
+from .tooling import get_host_addr, yaml_params, re_match, params_warn
 
 
 @yaml_params
@@ -37,11 +37,11 @@ def test_http(host, params):
 
     """
 
-    addr, port = get_host_addr(host), params.get('port', 80)
+    addr, port = get_host_addr(host), params.pop('port', 80)
     conn = HTTPConnection(addr, port)
-    for test in params.get('requests', ({},)):
-        method, url = test.get('method', 'GET'), test.get('url',  '/')
-        status = test.get('status', 200)
+    for test in params.pop('requests', ({},)):
+        method, url = test.pop('method', 'GET'), test.pop('url', '/')
+        status = test.pop('status', 200)
 
         conn.request(method, url)
         response = conn.getresponse()
@@ -49,8 +49,8 @@ def test_http(host, params):
 
         assert response.status == status
 
-        check_encoding = test.get('check_encoding', True)
-        regex = test.get('regex')
+        check_encoding = test.pop('check_encoding', True)
+        regex = test.pop('regex', None)
 
         if not check_encoding and regex:
             raise RuntimeError('Cannot check if the answer matches '
@@ -59,7 +59,9 @@ def test_http(host, params):
                                f'{test}')
 
         if check_encoding:
-            decoded_content = content.decode(encoding=test.get('encoding', 'utf-8'))
+            decoded_content = content.decode(encoding=test.pop('encoding', 'utf-8'))
 
         if regex:
-            assert re_match(regex, decoded_content, test.get('regex_policy', 'any'))
+            assert re_match(regex, decoded_content, test.pop('regex_policy', 'any'))
+
+        params_warn(params)

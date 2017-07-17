@@ -5,6 +5,7 @@ license that can be found in the LICENSE file.
 '''
 
 import re
+import warnings
 from enum import Enum
 from functools import reduce
 import yaml
@@ -139,3 +140,8 @@ def re_match(regex, lines, regex_policy=MatchPolicy.ANY):
         lines = lines.splitlines()
     comp_regex = re.compile(regex)
     return regex_policy.value(re.match(comp_regex, line) for line in lines)
+
+
+def params_warn(pars):
+    if pars:
+        warnings.warn(f"unused yaml attributes: {', '.join(pars)}")
