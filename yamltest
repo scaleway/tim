@@ -80,7 +80,7 @@ def main(args=None):
     pytest_args.extend(testinfra_tim.__path__)
 
     if raw_mode or tim_args.tim_verbose:
-        print(f'>> running pytest.main with args: {pytest_args}')
+        print('>> running pytest.main with args: {}'.format(pytest_args))
 
     pytest.main(args=pytest_args, plugins=[sys.modules[__name__]])
 

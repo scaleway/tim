@@ -16,7 +16,8 @@ def custom_xget(subject):
     def xget(dic, attr):
         ret = dic.get(attr, _XGET_ANCHOR)
         if ret is _XGET_ANCHOR:
-            raise RuntimeError(f'{subject} has no attribute `{attr}`')
+            raise RuntimeError(
+                '{} has no attribute `{}`'.format(subject, attr))
         return ret
     return xget
 
@@ -31,8 +32,9 @@ def get_host_attr(host, prop):
     try:
         return getattr(host.backend, prop)
     except AttributeError as ex:
-        raise RuntimeError(f'The backend for {host} does not have'
-                           f' the requested attribute: {ex}')
+        raise RuntimeError(
+            ('The backend for {} does not have the requested '
+             'attribute: {}').format(host, ex))
 
 
 def get_host_addr(host):
@@ -57,8 +59,9 @@ def listdict(ldish):
     elif isinstance(ldish, dict):
         yield from ldish.items()
     else:
-        raise RuntimeError(f'Expected a dict or a nested list'
-                           f' of dicts, got {type(ldish)}')
+        raise RuntimeError(
+            'Expected a dict or a nested list of dicts, got {}'.format(
+                type(ldish)))
 
 
 def listize(elem):
@@ -125,7 +128,9 @@ class MatchPolicy(Enum):
             return cls.from_string(e)
         elif isinstance(e, type(None)):
             return cls.from_string('NONE')
-        raise RuntimeError(f'Cannot cast type `{type(e)}` to {cls.__name__}')
+        raise RuntimeError(
+            'Cannot cast type `{}` to {}'.format(
+                type(e), cls.__name__))
 
 
     ANY = any
@@ -144,4 +149,5 @@ def re_match(regex, lines, regex_policy=MatchPolicy.ANY):
 
 def params_warn(pars):
     if pars:
-        warnings.warn(f"unused yaml attributes: {', '.join(pars)}")
+        warnings.warn('unused yaml attributes: {}'.format(
+            ', '.join(pars)))

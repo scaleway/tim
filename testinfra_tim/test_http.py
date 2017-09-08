@@ -53,10 +53,10 @@ def test_http(host, params):
         regex = test.pop('regex', None)
 
         if not check_encoding and regex:
-            raise RuntimeError('Cannot check if the answer matches '
-                               'a regex without decoding the content. '
-                               'Please enable the encoding check in test:'
-                               f'{test}')
+            raise RuntimeError(
+                ('Cannot check if the answer matches a regex without decoding '
+                 'the content. Please enable the encoding check in test: '
+                 '{}').format(test))
 
         if check_encoding:
             decoded_content = content.decode(encoding=test.pop('encoding', 'utf-8'))

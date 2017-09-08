@@ -4,7 +4,7 @@ TIM is a plugin for [testinfra](https://github.com/philpep/testinfra) parametriz
 
 # Setup
 
-TIM dependends on python 3.3, testinfra and pytest.
+TIM depends on python 3.3, testinfra and pytest.
 ```sh
 pip3 install git+git://github.com/scaleway/tim.git
 ```

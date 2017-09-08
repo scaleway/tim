@@ -29,8 +29,9 @@ def test_system_state(host, params):
     )
 
     if not params in possible_states:
-        raise RuntimeError(f'expected system state should be a string among'
-                           f' {possible_states.join(", ")}. got ({params})')
+        raise RuntimeError(
+            ('expected system state should be a string among {}, '
+             'got ({})').format(possible_states.join(", "), params))
 
     res = host.run('systemctl is-system-running')
     assert not res.stderr

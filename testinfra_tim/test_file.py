@@ -9,7 +9,7 @@ from .tooling import yaml_params, listize, re_match, params_warn
 
 def file_run(host, params):
     def check_type(f, type_name):
-        return getattr(f, f'is_{type_name}')
+        return getattr(f, 'is_{}'.format(type_name))
     exists = params.pop('exists', True)
     path = params.pop('path', None)
     mode = params.pop('mode', None)
